@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            http-equiv="Cache-Control"
+            content="no-cache, no-store, must-revalidate"
+        />
+        <meta http-equiv="Pragma" content="no-cache" />
+        <meta http-equiv="Expires" content="0" />
+        <title>Horizontal Timeline</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/luxon/3.3.0/luxon.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+        <style>
+            body,
+            html {
+                margin: 0;
+                padding: 0;
+                font-family: Arial, sans-serif;
+                height: 100vh;
+                overflow: hidden;
+            }
+            .container {
+                display: flex;
+                flex-direction: column;
+                height: 100vh;
+            }
+            .header {
+                background-color: #1f1f1f;
+                background: linear-gradient(135deg, #1f1f1f, #434343);
+                padding: 2px;
+                text-align: center;
+                font-family: "Helvetica Neue", Arial, sans-serif;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            }
+            .header h1 {
+                font-size: 1rem;
+                font-weight: 400;
+                letter-spacing: 2px;
+                color: #ffffff;
+                text-transform: uppercase;
+            }
+            .event-container {
+                flex: 1;
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                align-items: center;
+                padding: 10px;
+                overflow: hidden;
+                position: relative;
+            }
+            .event-card {
+                opacity: 0;
+                position: absolute;
+                border-radius: 10px;
+                overflow: hidden;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                transition: all 0.5s ease;
+                display: flex;
+                flex-direction: column;
+            }
+            .event-image {
+                flex-grow: 1;
+                background-size: cover;
+                background-position: center;
+            }
+            .event-image img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                object-position: 50% 25%;
+            }
+            .event-text {
+                padding: 0 8px;
+                font-size: 12px;
+                background-color: rgba(255, 255, 255, 0.9);
+            }
+            .event-text h3 {
+                margin: 8px 0 6px 0;
+            }
+            .event-text p {
+                margin: 0 0 8px 0;
+            }
+            .timeline-container {
+                position: relative;
+                overflow-x: scroll;
+                overflow-y: hidden;
+                padding: 0 20px;
+                margin-bottom: 5px;
+            }
+            .timeline {
+                position: relative;
+                height: 42px;
+            }
+            .timeline-line {
+                position: absolute;
+                top: 12px;
+                left: 0;
+                right: 0;
+                height: 3px;
+                background-color: #000;
+            }
+            .timeline-tick {
+                position: absolute;
+                top: 0px;
+                width: 3px;
+                height: 40px;
+                background-color: #000;
+            }
+            .timeline-label {
+                position: absolute;
+                top: 30px;
+                transform: translateX(-50%);
+                font-size: 12px;
+                font-weight: 500;
+                text-align: center;
+            }
+            .timeline-event {
+                position: absolute;
+                height: 24px;
+                top: 0px;
+                border-radius: 12px;
+                min-width: 4px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            }
+            .timeline-controls {
+                display: flex;
+                justify-content: space-evenly;
+                align-items: center;
+                padding: 0px;
+                margin-bottom: 90px;
+            }
+            .scroll-arrow {
+                width: 30px;
+                height: 30px;
+                background-color: #444444;
+                border-radius: 50%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+                cursor: pointer;
+                transition:
+                    background-color 0.2s ease,
+                    box-shadow 0.2s ease;
+            }
+            .scroll-arrow:hover {
+                background-color: #111111;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            }
+            .arrow-icon {
+                width: 24px;
+                height: 24px;
+            }
+            .days-control {
+                display: flex;
+                align-items: center;
+            }
+            #daysOnScreen {
+                /* min-width: 25vw; */
+                /* max-width: 50vw; */
+                width: 100%;
+                /* margin: 0 auto; */
+                -webkit-appearance: none;
+                height: 6px;
+                background: #eeeeee;
+                border: #999999 1px solid;
+                border-radius: 4px;
+                outline: none;
+                opacity: 0.9;
+                transition: opacity 0.2s ease-in-out;
+            }
+            #daysOnScreen::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                appearance: none;
+                width: 24px;
+                height: 24px;
+                border-radius: 50%;
+                background: #444444;
+                cursor: pointer;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+                transition: background 0.2s ease;
+            }
+            #daysOnScreen:hover {
+                opacity: 1;
+            }
+            #daysOnScreen::-webkit-slider-thumb:hover {
+                background: #111111;
+            }
+            .separator {
+                width: 1px;
+                height: 30px;
+                background-color: #444;
+                margin: 0;
+                opacity: 0.5;
+            }
+            .music-controls {
+                display: flex;
+                align-items: center;
+            }
+            .music-controls audio {
+                outline: none;
+                background-color: transparent;
+                max-width: 10vw;
+                /* min-width: 25vw; */
+                /* width: 40%; */
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <header class="header">
+                <h1>Jason & Noémi's Possible Future</h1>
+            </header>
+            <div class="event-container" id="eventContainer"></div>
+            <div class="timeline-container" id="timelineContainer">
+                <div class="timeline" id="timeline"></div>
+            </div>
+            <div class="timeline-controls">
+                <!-- Left Scroll Arrow -->
+                <div class="scroll-arrow" id="leftArrow">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        class="arrow-icon"
+                    >
+                        <path fill="#ffffff" d="M15 18l-6-6 6-6v12z" />
+                    </svg>
+                </div>
+
+                <!-- Days on Screen Control -->
+                <div class="days-control">
+                    <input
+                        type="range"
+                        id="daysOnScreen"
+                        min="1"
+                        max="90"
+                        value="30"
+                    />
+                </div>
+
+                <!-- Right Scroll Arrow -->
+                <div class="scroll-arrow" id="rightArrow">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        class="arrow-icon"
+                    >
+                        <path fill="#ffffff" d="M9 18l6-6-6-6v12z" />
+                    </svg>
+                </div>
+
+                <!-- Separator Line -->
+                <div class="separator"></div>
+
+                <!-- Music Controls -->
+                <div class="music-controls">
+                    <audio controls>
+                        <source
+                            src="music/OnTheEdgeofLove.mp3"
+                            type="audio/mp3"
+                        />
+                        Your browser does not support the audio element.
+                    </audio>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            const DateTime = luxon.DateTime;
+            const startDate = DateTime.fromISO("2024-10-01");
+            const endDate = DateTime.fromISO("2026-12-31");
+            const totalDays = endDate.diff(startDate, "days").days;
+            const timeline = document.getElementById("timeline");
+            const timelineContainer =
+                document.getElementById("timelineContainer");
+            const eventContainer = document.getElementById("eventContainer");
+            const leftArrow = document.getElementById("leftArrow");
+            const rightArrow = document.getElementById("rightArrow");
+            const daysOnScreenSlider = document.getElementById("daysOnScreen");
+            let daysOnScreen = parseInt(daysOnScreenSlider.value);
+            let events = [];
+
+            async function loadEventsFromCSV() {
+                const response = await fetch("events.csv");
+                const csvData = await response.text();
+                const results = Papa.parse(csvData, { header: true });
+                events = results.data.map((event) => ({
+                    ...event,
+                    start: DateTime.fromISO(event.start),
+                    end: DateTime.fromISO(event.end),
+                }));
+                events = events.sort((a, b) => a.start - b.start);
+                createTimeline();
+                updateVisibility();
+            }
+
+            function createTimeline() {
+                const screenWidth = window.innerWidth;
+                const timelineWidth = screenWidth * (totalDays / daysOnScreen);
+                timeline.style.width = `${timelineWidth}px`;
+
+                let currentDate = startDate.startOf("month");
+
+                while (currentDate <= endDate) {
+                    const tick = document.createElement("div");
+                    tick.className = "timeline-tick";
+                    tick.style.left = `${(currentDate.diff(startDate, "days").days / daysOnScreen) * screenWidth}px`;
+                    timeline.appendChild(tick);
+
+                    const label = document.createElement("div");
+                    label.className = "timeline-label";
+                    label.textContent = currentDate.toFormat("MMM yyyy");
+                    label.style.left = `${((currentDate.diff(startDate, "days").days + 15) / daysOnScreen) * screenWidth}px`;
+                    timeline.appendChild(label);
+
+                    currentDate = currentDate.plus({ months: 1 });
+                }
+
+                const timelineLine = document.createElement("div");
+                timelineLine.className = "timeline-line";
+                timeline.appendChild(timelineLine);
+
+                events.forEach((event, index) => {
+                    const startEvent = DateTime.fromISO(event.start);
+                    const endEvent = DateTime.fromISO(event.end);
+                    const eventElement = document.createElement("div");
+                    eventElement.className = "timeline-event";
+
+                    const startOffset =
+                        startEvent.diff(startDate, "days").days / daysOnScreen;
+                    const duration =
+                        Math.max(
+                            1,
+                            endEvent.diff(startEvent, "days").days + 1,
+                        ) / daysOnScreen;
+
+                    eventElement.style.left = `${startOffset * screenWidth}px`;
+                    eventElement.style.width = `${duration * screenWidth}px`;
+                    eventElement.style.backgroundColor = event.color;
+                    timeline.appendChild(eventElement);
+
+                    const card = document.createElement("div");
+                    card.className = "event-card";
+
+                    // Check if start date and end date are the same
+                    const dateText =
+                        startEvent.toFormat("MMM d, yyyy") ===
+                        endEvent.toFormat("MMM d, yyyy")
+                            ? `${startEvent.toFormat("MMM d, yyyy")}` // Only show start date if they are the same
+                            : `${startEvent.toFormat("MMM d, yyyy")} - ${endEvent.toFormat("MMM d, yyyy")}`; // Show both otherwise
+
+                    card.innerHTML = `
+                        <div class="event-image">
+                            <img src="${event.image}" alt="${event.title}" />
+                        </div>
+                        <div class="event-text" style="background-color: ${event.color}">
+                            <h3>${event.title}</h3>
+                            <p>${dateText}</p>
+                        </div>`;
+                    eventContainer.appendChild(card);
+                });
+            }
+
+            function updateVisibility() {
+                const timelineRect = timeline.getBoundingClientRect();
+                const timelineWidth = timeline.scrollWidth + 40;
+                const scrollLeft = Math.max(
+                    timelineContainer.scrollLeft - 20,
+                    0,
+                );
+
+                const visibleStartDate = startDate.plus({
+                    days: (scrollLeft / timelineWidth) * totalDays,
+                });
+
+                const visibleEndDate = visibleStartDate.plus({
+                    days: daysOnScreen,
+                });
+
+                const visibleCards = [];
+
+                events.forEach((event, index) => {
+                    const card =
+                        document.querySelectorAll(".event-card")[index];
+                    const eventStartDate = DateTime.fromISO(event.start);
+                    const eventEndDate = DateTime.fromISO(event.end);
+
+                    if (
+                        (eventStartDate >= visibleStartDate &&
+                            eventStartDate <= visibleEndDate) ||
+                        (eventEndDate >= visibleStartDate &&
+                            eventEndDate <= visibleEndDate) ||
+                        (eventStartDate <= visibleStartDate &&
+                            eventEndDate >= visibleEndDate)
+                    ) {
+                        card.style.display = "flex";
+                        card.style.opacity = "1";
+                        visibleCards.push(card);
+                    } else {
+                        card.style.opacity = "0";
+                        setTimeout(() => {
+                            if (card.style.opacity === "0") {
+                                card.style.display = "none";
+                            }
+                        }, 500);
+                    }
+                });
+
+                positionCards(visibleCards);
+            }
+
+            function positionCards(visibleCards) {
+                const containerWidth = eventContainer.clientWidth;
+                const containerHeight = eventContainer.clientHeight;
+                const gap = 20; // Gap between cards and edges
+
+                if (visibleCards.length === 1) {
+                    const card = visibleCards[0];
+                    const size =
+                        Math.min(containerWidth, containerHeight) - 2 * gap;
+                    card.style.width = `${size}px`;
+                    card.style.height = `${size}px`;
+                    card.style.left = `${(containerWidth - size) / 2}px`;
+                    card.style.top = `${(containerHeight - size) / 2}px`;
+                } else if (visibleCards.length > 1) {
+                    const isHorizontal = containerWidth > containerHeight;
+                    const cols = isHorizontal
+                        ? Math.ceil(Math.sqrt(visibleCards.length))
+                        : Math.floor(Math.sqrt(visibleCards.length));
+                    const rows = Math.ceil(visibleCards.length / cols);
+
+                    const cardWidth =
+                        (containerWidth - (cols + 1) * gap) / cols;
+                    const cardHeight =
+                        (containerHeight - (rows + 1) * gap) / rows;
+
+                    visibleCards.forEach((card, index) => {
+                        const row = Math.floor(index / cols);
+                        const col = index % cols;
+                        card.style.width = `${cardWidth}px`;
+                        card.style.height = `${cardHeight}px`;
+                        card.style.left = `${gap + col * (cardWidth + gap)}px`;
+                        card.style.top = `${gap + row * (cardHeight + gap)}px`;
+                    });
+                }
+
+                // Adjust image height based on text content
+                visibleCards.forEach((card) => {
+                    const textElement = card.querySelector(".event-text");
+                    const imageElement = card.querySelector(".event-image");
+                    const textHeight = textElement.offsetHeight;
+                    const cardHeight = card.offsetHeight;
+                    imageElement.style.height = `${cardHeight - textHeight}px`;
+                });
+            }
+
+            function scrollToEvent(direction) {
+                const scrollLeft = Math.max(timelineContainer.scrollLeft, 0);
+                const screenWidth = window.innerWidth;
+
+                let currentVisibleEvent = events.find((event) => {
+                    const eventStartOffset =
+                        event.start.diff(startDate, "days").days / daysOnScreen;
+                    const eventStartPosition =
+                        eventStartOffset * screenWidth + 20;
+                    return eventStartPosition >= scrollLeft - 1;
+                });
+
+                let currentIndex = events.indexOf(currentVisibleEvent);
+
+                let targetIndex = currentIndex + direction;
+
+                if (targetIndex < 0) {
+                    targetIndex = 0;
+                } else if (targetIndex >= events.length) {
+                    targetIndex = events.length - 1;
+                }
+
+                const targetEvent = events[targetIndex];
+
+                const targetEventStartOffset =
+                    targetEvent.start.diff(startDate, "days").days /
+                    daysOnScreen;
+                const targetEventStartPosition =
+                    targetEventStartOffset * screenWidth + 20;
+
+                timelineContainer.scrollTo({
+                    left: targetEventStartPosition,
+                    behavior: "smooth",
+                });
+            }
+
+            createTimeline();
+            loadEventsFromCSV();
+            daysOnScreenSlider.addEventListener("input", () => {
+                daysOnScreen = parseInt(daysOnScreenSlider.value);
+                timeline.innerHTML = "";
+                eventContainer.innerHTML = "";
+                createTimeline();
+                updateVisibility();
+            });
+            leftArrow.addEventListener("click", () => scrollToEvent(-1));
+            rightArrow.addEventListener("click", () => scrollToEvent(1));
+
+            timeline.parentElement.addEventListener("scroll", updateVisibility);
+            window.addEventListener("resize", () => {
+                timeline.innerHTML = "";
+                eventContainer.innerHTML = "";
+                createTimeline();
+                updateVisibility();
+            });
+            window.onload = function () {
+                const audio = document.querySelector("audio");
+                if (audio) {
+                    audio.play().catch((error) => {
+                        console.log(
+                            "Autoplay was prevented, user interaction is required.",
+                        );
+                    });
+                }
+            };
+        </script>
+    </body>
+</html>

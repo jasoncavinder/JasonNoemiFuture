@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Interactive Color Palette Grid</title>
+        <style>
+            body,
+            html {
+                margin: 0;
+                padding: 0;
+                height: 100%;
+                font-family: Arial, sans-serif;
+            }
+            .grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                grid-auto-rows: 1fr;
+                height: 100vh;
+            }
+            .cell {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                font-weight: bold;
+                color: #000;
+                text-shadow:
+                    1px 1px 0 #fff,
+                    -1px -1px 0 #fff,
+                    1px -1px 0 #fff,
+                    -1px 1px 0 #fff;
+                transition: filter 0.3s ease;
+            }
+            .cell.dimmed {
+                filter: brightness(50%);
+            }
+            .checkbox-container {
+                margin-top: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="grid">
+            <div
+                class="cell"
+                style="background-color: #ff8080"
+                data-color="#FF8080"
+            >
+                #FF8080
+                <div class="checkbox-container">
+                    <input type="checkbox" onchange="toggleDim(this)" />
+                </div>
+            </div>
+            <div
+                class="cell"
+                style="background-color: #ffb380"
+                data-color="#FFB380"
+            >
+                #FFB380
+                <div class="checkbox-container">
+                    <input type="checkbox" onchange="toggleDim(this)" />
+                </div>
+            </div>
+            <div
+                class="cell"
+                style="background-color: #ffe680"
+                data-color="#FFE680"
+            >
+                #FFE680
+                <div class="checkbox-container">
+                    <input type="checkbox" onchange="toggleDim(this)" />
+                </div>
+            </div>
+            <div
+                class="cell"
+                style="background-color: #e5ff80"
+                data-color="#E5FF80"
+            >
+                #E5FF80
+                <div class="checkbox-container">
+                    <input type="checkbox" onchange="toggleDim(this)" />
+                </div>
+            </div>
+            <div
+                class="cell"
+                style="background-color: #b3ff80"
+                data-color="#B3FF80"
+            >
+                #B3FF80
+                <div class="checkbox-container">
+                    <input type="checkbox" onchange="toggleDim(this)" />
+                </div>
+            </div>
+            <div
+                class="cell"
+                style="background-color: #80ff80"
+                data-color="#80FF80"
+            >
+                #80FF80
+                <div class="checkbox-container">
+                    <input type="checkbox" onchange="toggleDim(this)" />
+                </div>
+            </div>
+            <div
+                class="cell"
+                style="background-color: #80ffb3"
+                data-color="#80FFB3"
+            >
+                #80FFB3
+                <div class="checkbox-container">
+                    <input type="checkbox" onchange="toggleDim(this)" />
+                </div>
+            </div>
+            <div
+                class="cell"
+                style="background-color: #80ffe5"
+                data-color="#80FFE5"
+            >
+                #80FFE5
+                <div class="checkbox-container">
+                    <input type="checkbox" onchange="toggleDim(this)" />
+                </div>
+            </div>
+            <div
+                class="cell"
+                style="background-color: #80e5ff"
+                data-color="#80E5FF"
+            >
+                #80E5FF
+                <div class="checkbox-container">
+                    <input type="checkbox" onchange="toggleDim(this)" />
+                </div>
+            </div>
+            <div
+                class="cell"
+                style="background-color: #80b3ff"
+                data-color="#80B3FF"
+            >
+                #80B3FF
+                <div class="checkbox-container">
+                    <input type="checkbox" onchange="toggleDim(this)" />
+                </div>
+            </div>
+            <div
+                class="cell"
+                style="background-color: #8080ff"
+                data-color="#8080FF"
+            >
+                #8080FF
+                <div class="checkbox-container">
+                    <input type="checkbox" onchange="toggleDim(this)" />
+                </div>
+            </div>
+            <div
+                class="cell"
+                style="background-color: #b280ff"
+                data-color="#B280FF"
+            >
+                #B280FF
+                <div class="checkbox-container">
+                    <input type="checkbox" onchange="toggleDim(this)" />
+                </div>
+            </div>
+            <div
+                class="cell"
+                style="background-color: #e680ff"
+                data-color="#E680FF"
+            >
+                #E680FF
+                <div class="checkbox-container">
+                    <input type="checkbox" onchange="toggleDim(this)" />
+                </div>
+            </div>
+            <div
+                class="cell"
+                style="background-color: #ff80e5"
+                data-color="#FF80E5"
+            >
+                #FF80E5
+                <div class="checkbox-container">
+                    <input type="checkbox" onchange="toggleDim(this)" />
+                </div>
+            </div>
+            <div
+                class="cell"
+                style="background-color: #ff80b3"
+                data-color="#FF80B3"
+            >
+                #FF80B3
+                <div class="checkbox-container">
+                    <input type="checkbox" onchange="toggleDim(this)" />
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function toggleDim(checkbox) {
+                const cell = checkbox.closest(".cell");
+                cell.classList.toggle("dimmed");
+            }
+        </script>
+    </body>
+</html>
